@@ -1,1 +1,6 @@
-anthropic>=0.40.0
+# No required external dependencies for local/offline mode.
+#
+# Optional only if using:
+#   python threatsight.py --mode llm
+#
+# anthropic>=0.40.0
