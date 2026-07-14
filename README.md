@@ -1,6 +1,9 @@
 # ThreatSight: AI-Powered Security Detection Toolkit
 
-> Offline AI security query analyzer for anomalous prompt patterns, mapped to MITRE ATT&CK.
+> ThreatSight v2.0 is a local, rule-based cybersecurity detection platform. It detects suspicious activity from JSON, CSV, Syslog, Windows XML, and Apache logs.
+
+No API key, cloud account, or external Python package is required.
+
 
 ---
 
@@ -13,11 +16,8 @@ ThreatSight analyzes queries sent to AI systems (LLM APIs, RAG pipelines, agenti
 - **Data exfiltration** — queries attempting to leak files, credentials, or configs
 - **Model abuse** — resource exhaustion, repetition attacks, unauthorized access patterns
 
-It supports two analysis modes:
 
 - **Local mode**: deterministic rules-based detection. This is free, offline, and requires no API key.
-- **LLM mode**: optional Claude-powered analysis for richer reasoning when an Anthropic API key is available.
-
 For each detected threat, ThreatSight:
 1. Assigns a risk level (Critical / High / Medium / Low)
 2. Maps the attack to MITRE ATT&CK technique IDs
