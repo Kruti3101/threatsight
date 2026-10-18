@@ -1,0 +1,77 @@
+======================================================================
+  ThreatSight — AI Security Detection Report
+  Generated : 2026-06-27 00:09:08 UTC
+  Queries analyzed : 7
+  Anomalous        : 4
+======================================================================
+
+RISK SUMMARY
+----------------------------------------
+  CRITICAL    : 2
+  HIGH        : 2
+  NONE        : 3
+
+FINDINGS
+----------------------------------------
+
+  [HIGH] Query Q001 | 2026-01-15T08:23:11Z
+  User      : svc_account_03 (192.168.1.45)
+  Attack    : Prompt Injection
+  MITRE     : T1190, T1566
+  Reasoning : Query matched local indicators for prompt injection.
+  Rule      : Alert when query text contains instruction override phrases or asks for the system prompt.
+  Response  : Block the prompt and alert the SOC for prompt-injection review.
+
+  [HIGH] Query Q003 | 2026-01-15T08:25:33Z
+  User      : unknown (203.0.113.88)
+  Attack    : Jailbreak, Resource Abuse
+  MITRE     : T1055, T1650
+  Reasoning : Query matched local indicators for jailbreak, resource abuse.
+  Rule      : Alert when a query attempts to switch the model into DAN, developer mode, or another unrestricted persona.
+  Response  : Deny the request and increase monitoring on the source identity.
+
+  [CRITICAL] Query Q005 | 2026-01-15T08:27:44Z
+  User      : svc_account_07 (10.0.0.99)
+  Attack    : Data Exfiltration
+  MITRE     : T1048, T1552, T1602
+  Reasoning : Query matched local indicators for data exfiltration.
+  Rule      : Alert when AI queries request sensitive files, credentials, tokens, or external transfer of protected data.
+  Response  : Block the request, preserve the prompt log, and review the user's session permissions.
+
+  [CRITICAL] Query Q007 | 2026-01-15T08:29:55Z
+  User      : anonymous (203.0.113.55)
+  Attack    : Data Exfiltration, Jailbreak
+  MITRE     : T1048, T1055, T1552, T1602, T1650
+  Reasoning : Query matched local indicators for data exfiltration, jailbreak.
+  Rule      : Alert when AI queries request sensitive files, credentials, tokens, or external transfer of protected data.
+  Response  : Block the request, preserve the prompt log, and review the user's session permissions.
+
+
+CONSOLIDATED DETECTION RULES
+----------------------------------------
+
+Rule 1: Prompt Injection Detection
+  Condition : Alert when query text contains instruction override phrases or asks for the system prompt.
+  Severity  : high
+  MITRE     : T1190, T1566
+  Response  : Block the prompt and alert the SOC for prompt-injection review.
+
+Rule 2: Jailbreak, Resource Abuse Detection
+  Condition : Alert when a query attempts to switch the model into DAN, developer mode, or another unrestricted persona.
+  Severity  : high
+  MITRE     : T1055, T1650
+  Response  : Deny the request and increase monitoring on the source identity.
+
+Rule 3: Data Exfiltration Detection
+  Condition : Alert when AI queries request sensitive files, credentials, tokens, or external transfer of protected data.
+  Severity  : critical
+  MITRE     : T1048, T1552, T1602
+  Response  : Block the request, preserve the prompt log, and review the user's session permissions.
+
+Rule 4: Data Exfiltration, Jailbreak Detection
+  Condition : Alert when AI queries request sensitive files, credentials, tokens, or external transfer of protected data.
+  Severity  : critical
+  MITRE     : T1048, T1055, T1552, T1602, T1650
+  Response  : Block the request, preserve the prompt log, and review the user's session permissions.
+
+======================================================================
