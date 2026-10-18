@@ -80,12 +80,13 @@ def detect(text: str) -> list[Finding]:
         if not matches:
             continue
         indicators = [match.re.pattern for match in matches]
-        confidence = min(0.99, 0.72 + (0.1 * (len(matches) - 1)))
+        # This is a deterministic rule-strength score, not a calibrated probability.
+        rule_match_confidence = min(0.99, 0.72 + (0.1 * (len(matches) - 1)))
         findings.append(Finding(
             event_id=_event_id(text, rule.category),
             threat_category=rule.category,
             severity=rule.severity,
-            confidence=round(confidence, 2),
+            rule_match_confidence=round(rule_match_confidence, 2),
             matched_indicators=indicators,
             evidence=[_evidence(text, match) for match in matches],
             attack_mapping=rule.mapping,

@@ -14,7 +14,8 @@ def ratio(numerator: int, denominator: int) -> float | None:
 
 def evaluate(dataset_path: Path) -> dict:
     rows = [json.loads(line) for line in dataset_path.read_text().splitlines() if line.strip()]
-    counts: Counter[str] = Counter()
+    binary_counts: Counter[str] = Counter()
+    category_counts: Counter[str] = Counter()
     errors: list[dict] = []
     per_category: dict[str, dict] = {}
     for row in rows:
@@ -23,35 +24,61 @@ def evaluate(dataset_path: Path) -> dict:
         actual = row["label"] != "benign"
         predicted = bool(findings)
         if actual and predicted:
-            counts["true_positive"] += 1
+            binary_counts["true_positive"] += 1
         elif not actual and predicted:
-            counts["false_positive"] += 1
+            binary_counts["false_positive"] += 1
         elif actual:
-            counts["false_negative"] += 1
+            binary_counts["false_negative"] += 1
         else:
-            counts["true_negative"] += 1
-        if (actual != predicted) or (actual and row["label"] not in categories):
+            binary_counts["true_negative"] += 1
+
+        # The dataset is single-label, but a detector may produce multiple findings.
+        # Count every unexpected predicted category as a category-level false positive;
+        # a missing expected category is a false negative even if another category fired.
+        expected_category = row["label"]
+        if actual and expected_category in categories:
+            category_counts["true_positive"] += 1
+        elif actual:
+            category_counts["false_negative"] += 1
+        if actual:
+            category_counts["false_positive"] += len(categories - {expected_category})
+        else:
+            category_counts["false_positive"] += len(categories)
+            if not categories:
+                category_counts["true_negative"] += 1
+        if (actual != predicted) or (actual and expected_category not in categories):
             errors.append({"id": row["id"], "label": row["label"], "predicted_categories": sorted(categories)})
         if actual:
             category = per_category.setdefault(row["label"], {"examples": 0, "matched_category": 0})
             category["examples"] += 1
             category["matched_category"] += int(row["label"] in categories)
-    tp, fp, fn, tn = (counts[key] for key in ("true_positive", "false_positive", "false_negative", "true_negative"))
+    tp, fp, fn, tn = (binary_counts[key] for key in ("true_positive", "false_positive", "false_negative", "true_negative"))
+    category_tp, category_fp, category_fn = (category_counts[key] for key in ("true_positive", "false_positive", "false_negative"))
     for category in per_category.values():
         category["category_recall"] = ratio(category["matched_category"], category["examples"])
     return {
         "dataset": str(dataset_path),
         "samples": len(rows),
-        "confusion_matrix": dict(counts),
-        "metrics": {
-            "precision": ratio(tp, tp + fp),
-            "recall": ratio(tp, tp + fn),
-            "false_positive_rate": ratio(fp, fp + tn),
-            "false_negative_rate": ratio(fn, fn + tp),
+        "binary_detection": {
+            "confusion_matrix": dict(binary_counts),
+            "metrics": {
+                "precision": ratio(tp, tp + fp),
+                "recall": ratio(tp, tp + fn),
+                "false_positive_rate": ratio(fp, fp + tn),
+                "false_negative_rate": ratio(fn, fn + tp),
+            },
+        },
+        "category_classification": {
+            "confusion_counts": dict(category_counts),
+            "metrics": {
+                "precision": ratio(category_tp, category_tp + category_fp),
+                "recall": ratio(category_tp, category_tp + category_fn),
+            },
+            "definition": "A correct category is required for a true positive. Unexpected categories count as false positives; missing expected categories count as false negatives.",
         },
         "category_results": per_category,
         "error_cases": errors,
-        "limitations": "Results describe this labeled dataset only; they do not establish resistance to paraphrase attacks or prove real-world compromise.",
+        "limitations": "Results describe this labeled dataset only; they do not establish real-world accuracy, resistance to novel paraphrases, or proof of compromise.",
     }
 
 

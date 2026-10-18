@@ -25,7 +25,7 @@ class Finding:
     event_id: str
     threat_category: str
     severity: Severity
-    confidence: float
+    rule_match_confidence: float
     matched_indicators: list[str]
     evidence: list[str]
     attack_mapping: AttackMapping

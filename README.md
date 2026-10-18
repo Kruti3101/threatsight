@@ -26,12 +26,12 @@ ThreatSight maps a finding to MITRE ATT&CK **only when the observed behavior fit
 
 Every detection contains:
 
-- `event_id`, `threat_category`, `severity`, and `confidence`
+- `event_id`, `threat_category`, `severity`, and `rule_match_confidence`
 - `matched_indicators` and minimally sufficient `evidence`
 - `attack_mapping` and `mapping_rationale`
 - `recommended_action`
 
-Severity is potential impact; confidence reflects the strength of the evidence. They are intentionally independent.
+Severity is potential impact; `rule_match_confidence` is a deterministic evidence-strength score. It starts at `0.72` for one matched rule and increases by `0.10` per additional rule, capped at `0.99`. It is not a calibrated probability or a claim that a finding has (for example) a 92% chance of being correct. The two values are intentionally independent.
 
 ## Evaluate the detector
 
@@ -41,13 +41,13 @@ The labeled dataset lives at `data/evaluation_prompts.jsonl` and includes benign
 python3 -m threatsight.evaluate --output reports/evaluation.json
 ```
 
-The report records precision, recall, false-positive rate, false-negative rate, confusion-matrix counts, category coverage, and the exact cases missed or incorrectly flagged. Treat this output as the source of truth for current detector quality.
+The report separates binary detection metrics (benign versus suspicious) from category-classification metrics (whether the expected threat category was correctly identified). It records precision, recall, false-positive and false-negative rates, category coverage, and exact missed or incorrectly classified cases. Treat this output as the source of truth for current detector quality.
 
 The committed [baseline evaluation](docs/evaluation.md) records the current measured result and its scope.
 
 ## Secure optional model integration
 
-`threatsight.remote` defines a narrow optional-model boundary. It keeps detection local by default, redacts likely secrets before transmission, uses environment-based credentials, applies timeouts, validates responses against a strict schema, and never executes a model-produced action. Model output is advisory data only.
+`threatsight.remote` defines a narrow optional-model boundary. It keeps detection local by default, requires the caller to record explicit consent before it can transmit prompt text, redacts several recognizable secret formats, uses environment-based credentials, validates responses against a strict schema, and never executes a model-produced action. Model output is advisory data only. Redaction is best-effort—not proof that data is safe to transmit—so callers must apply approved-data policies and minimize content before opt-in.
 
 ## Limitations
 
